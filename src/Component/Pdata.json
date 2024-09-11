@@ -1,0 +1,44 @@
+{
+    "categories": [
+      {
+        "category": "Cotton",
+        "header": {
+          "heading": "Our Cotton Collection",
+          "image": "https://example.com/cotton-header.jpg"
+        },
+        "products": [
+          {
+            "id": 1,
+            "name": "S/White/Cotton",
+            "availability": 99,
+            "price": 3.99,
+            "image": "https://example.com/product1.jpg"
+          },
+          {
+            "id": 2,
+            "name": "M/White/Cotton",
+            "availability": 60,
+            "price": 3.99,
+            "image": "https://example.com/product2.jpg"
+          },
+          {
+            "id": 3,
+            "name": "L/White/Cotton",
+            "availability": 75,
+            "price": 8.99,
+            "image": "https://example.com/product3.jpg"
+          },
+          {
+            "id": 4,
+            "name": "Printed T-shirt",
+            "availability": 50,
+            "price": 12.99,
+            "image": "https://example.com/product4.jpg"
+          }
+        ]
+      }
+     
+    
+    ]
+  }
+  
