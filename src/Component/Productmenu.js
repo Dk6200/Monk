@@ -5,7 +5,8 @@ import data from "./Pdata.json";
 
 function Productmenu() {
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
+  const [selectedProducts, setSelectedProducts] = useState({});
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
@@ -13,13 +14,46 @@ function Productmenu() {
     setCategories(data.categories);
   }, []);
 
-  // Handler to set the selected category
+  // Handle category checkbox change
   const handleCategoryClick = (category) => {
-    setSelectedCategory(category);
+    const isSelected = selectedCategoryIds.includes(category.category);
+    if (isSelected) {
+      // Deselect category and all products in it
+      setSelectedCategoryIds(
+        selectedCategoryIds.filter((id) => id !== category.category)
+      );
+      setSelectedProducts((prevSelected) => {
+        const updatedProducts = { ...prevSelected };
+        category.products.forEach((product) => {
+          delete updatedProducts[product.id];
+        });
+        return updatedProducts;
+      });
+    } else {
+      // Select category and all products in it
+      setSelectedCategoryIds([...selectedCategoryIds, category.category]);
+      setSelectedProducts((prevSelected) => {
+        const updatedProducts = { ...prevSelected };
+        category.products.forEach((product) => {
+          updatedProducts[product.id] = true;
+        });
+        return updatedProducts;
+      });
+    }
   };
+
+  // Handle individual product selection
+  const handleProductCheckboxChange = (productId) => {
+    setSelectedProducts((prevSelected) => ({
+      ...prevSelected,
+      [productId]: !prevSelected[productId],
+    }));
+  };
+
   const handleDeleteClick = () => {
     setIsVisible(false);
   };
+
   if (!isVisible) {
     return null; // If isVisible is false, render nothing (hide the component)
   }
@@ -47,64 +81,58 @@ function Productmenu() {
       <div className="p-4 space-y-4">
         {/* Render categories */}
         {categories.map((category) => (
-          <div
-            key={category.category}
-            className="flex items-center border-b border-customBorder p-2 cursor-pointer"
-            onClick={() => handleCategoryClick(category)}
-          >
-            <label className="p-2">
-              <input
-                type="checkbox"
-                className="h-4 w-4 text-green-600 border-gray-300 rounded"
-              />
-            </label>
-            {/*
-            <img
-              src={category.header.image}
-              alt="Category"
-              className="p-2 w-10 h-10"
-            />
-            */}
-            <p className="p-2">{category.header.heading}</p>
-          </div>
-        ))}
-
-        {/* Render products if a category is selected */}
-        {selectedCategory && (
-          <div className="p-4 space-y-4">
-            {selectedCategory.products.map((product) => (
-              <div
-                key={product.id}
-                className="flex items-center border-b border-gray-300 py-2 space-x-4"
-              >
-                {/* Checkbox */}
+          <div key={category.category}>
+            <div
+              className="flex items-center border-b border-customBorder p-2 cursor-pointer"
+              onClick={() => handleCategoryClick(category)}
+            >
+              <label className="p-2">
                 <input
                   type="checkbox"
+                  checked={selectedCategoryIds.includes(category.category)}
+                  onChange={() => handleCategoryClick(category)}
                   className="h-4 w-4 text-green-600 border-gray-300 rounded"
                 />
+              </label>
+              <p className="p-2">{category.header.heading}</p>
+            </div>
 
-                {/* Image */}
+            {/* Render products if the category is selected */}
+            {selectedCategoryIds.includes(category.category) && (
+              <div className="p-4 space-y-4">
+                {category.products.map((product) => (
+                  <div
+                    key={product.id}
+                    className="flex items-center border-b border-gray-300 py-2 space-x-4"
+                  >
+                    {/* Checkbox for product */}
+                    <input
+                      type="checkbox"
+                      checked={selectedProducts[product.id] || false}
+                      onChange={() => handleProductCheckboxChange(product.id)}
+                      className="h-4 w-4 text-green-600 border-gray-300 rounded"
+                    />
 
-                {/*<img src={product.image} alt="" className="w-12 h-12" />
-
-                {/* Product Details */}
-                <div className="flex justify-between w-full">
-                  <p className="font-semibold flex-1">{product.name}</p>
-                  <div className="flex justify-between space-x-4">
-                    <p className="text-sm text-gray-600 flex-1 text-left whitespace-nowrap">
-                      {product.availability} available
-                    </p>
-
-                    <p className="text-sm font-bold flex-1 text-right">
-                      ${product.price.toFixed(2)}
-                    </p>
+                    {/* Product Details */}
+                    <div className="flex justify-between w-full">
+                      <p className="font-semibold flex-1">{product.name}</p>
+                      <div className="flex justify-between space-x-4">
+                        <p className="text-sm text-gray-600 flex-1 text-left whitespace-nowrap">
+                          {product.availability} available
+                        </p>
+                        <p className="text-sm font-bold flex-1 text-right">
+                          ${product.price.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
-        )}
+        ))}
       </div>
+
       <div className="Footer flex justify-between items-center p-4">
         <p>Products Selected</p>
         <div className="Buttons flex justify-between items-center">
