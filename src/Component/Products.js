@@ -22,7 +22,8 @@ function Products() {
           placeholder="Search products"
           onEditClick={handler}
         />
-        <ProductInput
+        {/*
+         <ProductInput
           number={2}
           placeholder="Search products"
           onEditClick={handler}
@@ -32,9 +33,11 @@ function Products() {
           placeholder="Search products"
           onEditClick={handler}
         />
+      */}
       </div>
 
       {/* Conditionally render Productmenu */}
+
       {showProductMenu && (
         <div className="mt-4">
           <Productmenu />

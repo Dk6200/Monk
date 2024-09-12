@@ -1,6 +1,7 @@
 import React from "react";
 import Edit from "../Assets/Group.png";
 import Icon from "../Assets/Group 669.png"; // Assuming you're using the same icon
+import { useSelector } from "react-redux";
 
 const ProductInput = ({ number, placeholder, onEditClick }) => {
   return (
