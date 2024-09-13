@@ -1,46 +1,35 @@
 import React, { useState } from "react";
-// import Icon from "../Assets/Group 669.png";
-// import Edit from "../Assets/Group.png";
-import Productmenu from "./Productmenu";
-import ProductInput from "./Productinput";
+import Productmenu from "../Component/Productmenu";
+import ProductInput from "../Component/Productinput";
 
 function Products() {
-  // State to control the visibility of the Productmenu
   const [showProductMenu, setShowProductMenu] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState({});
 
-  // Handler to toggle the visibility of Productmenu
-  const handler = () => {
+  const handleAddProducts = (products) => {
+    setSelectedProducts(products);
+    setShowProductMenu(false); // Close product menu after selection
+  };
+
+  const toggleProductMenu = () => {
     setShowProductMenu((prevState) => !prevState);
   };
 
   return (
-    <div className="w-[800px] h-auto bg-customBackground p-4 mx-auto">
+    <div className="w-[800px] h-auto bg-white p-4 mx-auto">
       <div className="text-lg font-bold mb-4">
         <p className="px-4 py-1">Add Discount</p>
         <ProductInput
           number={1}
           placeholder="Search products"
-          onEditClick={handler}
+          onEditClick={toggleProductMenu}
+          products={selectedProducts} // Pass selected products here
         />
-        {/*
-         <ProductInput
-          number={2}
-          placeholder="Search products"
-          onEditClick={handler}
-        />
-        <ProductInput
-          number={3}
-          placeholder="Search products"
-          onEditClick={handler}
-        />
-      */}
       </div>
-
-      {/* Conditionally render Productmenu */}
 
       {showProductMenu && (
         <div className="mt-4">
-          <Productmenu />
+          <Productmenu onAddClick={handleAddProducts} />
         </div>
       )}
     </div>

@@ -2,49 +2,46 @@ import React, { useEffect, useState } from "react";
 import Delete from "../Assets/Vector (1).png";
 import { FaSearch } from "react-icons/fa";
 import data from "./Pdata.json";
-import { useDispatch } from "react-redux";
-import { addProducts } from "../redux/actions"; // Import the action
 
-function Productmenu() {
+function Productmenu({ onAddClick }) {
   const [categories, setCategories] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState({});
   const [isVisible, setIsVisible] = useState(true);
-  const dispatch = useDispatch(); // Dispatcher from Redux
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     setCategories(data.categories);
   }, []);
 
-  // Handling category click (all products selection/deselection)
-  const handleCategoryClick = (category) => {
-    const newSelectedProducts = { ...selectedProducts };
-
-    const areAllProductsSelected = category.products.every(
+  const handleCategoryCheckboxChange = (category) => {
+    const someSelected = category.products.some(
       (product) => selectedProducts[product.id]
     );
 
-    category.products.forEach((product) => {
-      if (areAllProductsSelected) {
-        delete newSelectedProducts[product.id]; // Deselect all products
-      } else {
-        newSelectedProducts[product.id] = product; // Select the full product data
-      }
-    });
+    // Determine whether to select or deselect all products in this category
+    const shouldSelect = !someSelected;
 
-    setSelectedProducts(newSelectedProducts);
+    setSelectedProducts((prevSelected) => {
+      const newSelected = { ...prevSelected };
+      category.products.forEach((product) => {
+        if (shouldSelect) {
+          newSelected[product.id] = product;
+        } else {
+          delete newSelected[product.id];
+        }
+      });
+      return newSelected;
+    });
   };
 
-  // Handling single product checkbox change
   const handleProductCheckboxChange = (product) => {
     setSelectedProducts((prevSelected) => {
       const newSelected = { ...prevSelected };
-
       if (newSelected[product.id]) {
-        delete newSelected[product.id]; // Deselect product
+        delete newSelected[product.id];
       } else {
-        newSelected[product.id] = product; // Select product data
+        newSelected[product.id] = product;
       }
-
       return newSelected;
     });
   };
@@ -55,25 +52,17 @@ function Productmenu() {
     setIsVisible(false);
   };
 
-  const isCategoryIndeterminate = (category) => {
-    const selectedProductIds = category.products.map((product) => product.id);
-    const selectedProductCount = selectedProductIds.filter(
-      (id) => selectedProducts[id]
-    ).length;
-    return (
-      selectedProductCount > 0 &&
-      selectedProductCount < category.products.length
-    );
-  };
-
-  const isCategorySelected = (category) => {
-    return category.products.every((product) => selectedProducts[product.id]);
-  };
-
   const handleAddClick = () => {
-    dispatch(addProducts(selectedProducts)); // Dispatch full product data to Redux
-    console.log("Selected Products added to store: ", selectedProducts); // Log in the console
+    onAddClick(selectedProducts);
+    setIsVisible(false); // Close menu after adding
   };
+
+  const filteredCategories = categories.map((category) => ({
+    ...category,
+    products: category.products.filter((product) =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ),
+  }));
 
   if (!isVisible) {
     return null;
@@ -96,40 +85,39 @@ function Productmenu() {
           type="text"
           placeholder="Search product"
           className="border rounded-md p-2 pl-10 w-full"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
         <FaSearch className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 items-center" />
       </div>
 
       <div className="p-4 space-y-4">
-        {categories.map((category) => (
-          <div
-            key={category.category}
-            className="flex items-center border-b border-customBorder p-2 cursor-pointer"
-            onClick={() => handleCategoryClick(category)}
-          >
-            <label className="p-2">
-              <input
-                type="checkbox"
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:border-white"
-                checked={isCategorySelected(category)}
-                onChange={() => handleCategoryClick(category)}
-                ref={(el) => {
-                  if (el) {
-                    el.indeterminate = isCategoryIndeterminate(category);
-                  }
-                }}
-              />
-            </label>
-            <p className="p-2">{category.header.heading}</p>
-          </div>
-        ))}
+        {filteredCategories.map((category) => {
+          // Determine if all products in the category are selected
+          const allSelected = category.products.every(
+            (product) => selectedProducts[product.id]
+          );
+          // Determine if any product in the category is selected
+          const someSelected = category.products.some(
+            (product) => selectedProducts[product.id]
+          );
 
-        {categories.map(
-          (category) =>
-            category.products.some(
-              (product) => selectedProducts[product.id]
-            ) && (
-              <div key={category.category} className="p-4 space-y-4">
+          return (
+            <div key={category.category}>
+              <div className="flex items-center border-b border-customBorder p-2 cursor-pointer">
+                <label className="p-2">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:border-white"
+                    checked={allSelected}
+                    indeterminate={someSelected && !allSelected}
+                    onChange={() => handleCategoryCheckboxChange(category)}
+                  />
+                </label>
+                <p className="p-2">{category.header.heading}</p>
+              </div>
+
+              <div className="p-4 space-y-4">
                 {category.products.map((product) => (
                   <div
                     key={product.id}
@@ -144,7 +132,7 @@ function Productmenu() {
 
                     <div className="flex justify-between w-full">
                       <p className="font-semibold flex-1">{product.name}</p>
-                      <div className="flex justify-between space-x-4">
+                      <div className="flex justify-between space-x-">
                         <p className="text-sm text-gray-600 flex-1 text-left whitespace-nowrap">
                           {product.availability} available
                         </p>
@@ -157,21 +145,25 @@ function Productmenu() {
                   </div>
                 ))}
               </div>
-            )
-        )}
+            </div>
+          );
+        })}
       </div>
 
       <div className="Footer flex justify-between items-center p-4">
         <p>Products Selected: {selectedProductCount}</p>
-        <div className="Buttons flex justify-between items-center">
-          <button className="text-customGrey bg-white px-5 py-1 rounded mr-4 border-customGrey">
-            Cancel
-          </button>
+        <div className="Buttons flex justify-end space-x-4">
           <button
-            className="text-white bg-green-700 px-5 py-1 rounded"
             onClick={handleAddClick}
+            className="bg-blue-500 text-white py-2 px-4 rounded"
           >
             Add
+          </button>
+          <button
+            onClick={() => setIsVisible(false)}
+            className="bg-gray-500 text-white py-2 px-4 rounded"
+          >
+            Close
           </button>
         </div>
       </div>
